@@ -103,6 +103,16 @@ The RELBot’s external webcam is typically available at `/dev/video2`. If you e
        /dev/video3
        /dev/media1
    ```
+
+   Or if RPI complains about package is missing try: 
+   ```
+   ls /dev/video*
+   ```
+   Example output
+
+   ```
+   /dev/video0  /dev/video1  /dev/video2  /dev/video3
+   ```
    Here, use `/dev/video2` for MJPEG streaming.
 
 2. **Determine your host IP**  
@@ -110,7 +120,7 @@ The RELBot’s external webcam is typically available at `/dev/video2`. If you e
    ifconfig  # look under wlan0 or eth0
    ```
 
-3. **Start the GStreamer pipeline** _(replace `<HOST_IP>` with your host IP)_  
+3. **Start the GStreamer pipeline** _(replace `<HOST_IP>` with your host IP from the Ubuntu OS)_  
    ```
    gst-launch-1.0 -v \
    v4l2src device=/dev/video2 ! \
@@ -131,6 +141,8 @@ The RELBot’s external webcam is typically available at `/dev/video2`. If you e
 ## Step 3: Launch Controller Nodes on the RELBot
 
 Prebuilt ROS 2 packages for the FPGA and Raspberry Pi controllers are provided with your RELBot hardware. Report hardware issues for a replacement; software bugs will be patched across all robots.
+
+Please open two terminals on the RELBot and then, 
 
 **Terminal 1:**
 ```
@@ -162,7 +174,7 @@ Set up your ROS 2 workspace to communicate with the RELBot via a unique domain 
    ```
    export ROS_DOMAIN_ID=<RELBot_ID>   # e.g., 8 for RELBot08
    ```
-   Add this line to `~/.bashrc` to make it persistent.
+   Add this line to `~/.bashrc` to make it persistent. This is a very importamt step to configure the communication with the ROS2 running on the RELBot.
 
 ---
 
@@ -170,7 +182,7 @@ Set up your ROS 2 workspace to communicate with the RELBot via a unique domain 
 
 The `relbot_video_interface` package is already included in this repository under `/ai4r_ws/src/relbot_video_interface` and is mounted into the Docker container at `/ros2_ws/src/relbot_video_interface`.
 
-Once your Docker container is running and prerequisites (ROS 2, GStreamer, etc.) are satisfied, build and launch the test node to verify the video stream:
+Once your Docker container is running and prerequisites (ROS 2, GStreamer, Step 4.2 etc.) are satisfied, build and launch the test node to verify the video stream:
 
 ```bash
 # From inside the container, at the workspace root:
@@ -221,7 +233,7 @@ ros2 param list /video_interface
 ros2 param get /video_interface gst_pipeline
 ros2 param set /video_interface gst_pipeline "<new_pipeline_string>"
 
-# Publish a test message once
+# Publish a test message once to move the RELBot (if this is not working check the ROS_DOMAIN_ID, step 4.2)
 ros2 topic pub /object_position geometry_msgs/msg/Point "{x: 100.0, y: 0.0, z: 0.0}" --once
 
 # Debug with RQT tools
