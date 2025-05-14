@@ -28,7 +28,8 @@ elif docker ps -a --filter "name=^/${CONTAINER_NAME}$" --format '{{.Names}}' | g
   docker start "${CONTAINER_NAME}"
   docker exec -it "${CONTAINER_NAME}" bash
 else
-  echo "Creating and launching new container: ${CONTAINER_NAME}"
+  echo "Creating and launching container: ${CONTAINER_NAME} (with GPU support)"
+  echo "Note: Ensure that an NVIDIA GPU is available, the required NVIDIA drivers are installed, and the NVIDIA Container Toolkit is properly set up for GPU access."
   docker run -it \
     --name "${CONTAINER_NAME}" \
     --net=host \
