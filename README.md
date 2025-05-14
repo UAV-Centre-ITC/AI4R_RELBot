@@ -120,7 +120,7 @@ The RELBot’s external webcam is typically available at `/dev/video2`. If you e
    ifconfig  # look under wlan0 or eth0
    ```
 
-3. **Start the GStreamer pipeline** _(replace `<HOST_IP>` with your host IP from the Ubuntu OS)_  
+3. **Updated Start the GStreamer pipeline** _(replace `<HOST_IP>` with your host IP from the Ubuntu OS)_  
    ```
    gst-launch-1.0 -v \
    v4l2src device=/dev/video2 ! \
@@ -135,6 +135,17 @@ The RELBot’s external webcam is typically available at `/dev/video2`. If you e
    - **x264enc**: encode to H.264 with low latency.  
    - **rtph264pay**: packetize for RTP.  
    - **udpsink**: stream to your host.
+   - **NOTE** : Please update the resolution of the command as follows- width=320 , height=240,
+   
+ ```
+   gst-launch-1.0 -v \
+   v4l2src device=/dev/video2 ! \
+   image/jpeg,width=320,height=240,framerate=30/1 ! \
+   jpegdec ! videoconvert ! \
+   x264enc tune=zerolatency bitrate=800 speed-preset=ultrafast ! \
+   rtph264pay config-interval=1 pt=96 ! \
+   udpsink host=<HOST_IP> port=5000
+   ```
 
 ---
 
@@ -275,3 +286,81 @@ For seamless development, you can use VS Code’s Remote extensions to work dir
          ForwardX11 yes
          User pi
      ```
+
+
+## GPU Access from Docker Container
+
+Use the NVIDIA Container Toolkit to expose your host GPU inside the ROS 2 Docker container. Follow these steps:
+
+**1. Install & Configure on the Host**
+
+```bash
+# Install NVIDIA driver (if not already installed)
+sudo apt update
+sudo apt install -y nvidia-driver-<version>
+# (Reboot if this is a new driver)
+
+# Add NVIDIA’s Docker repository and GPG key:
+distribution=$(. /etc/os-release && echo $ID$VERSION_ID)
+curl -sSL https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+curl -sSL https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list \
+  | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+# Install the NVIDIA Container Toolkit:
+sudo apt update
+sudo apt install -y nvidia-docker2
+
+# Restart Docker to apply the new runtime:
+sudo systemctl restart docker
+```
+
+Verify the `nvidia` runtime is available:
+
+```bash
+docker info | grep -i "runtimes"
+# Expect to see 'nvidia' listed
+```
+
+**2. Update `assignment_run.sh`**
+
+In your `assignment_run.sh`, add a new flag with either:
+
+* **All GPUs**
+
+  ```
+   --gpus all \
+  ```
+
+* **Single GPU (e.g. device 0)**
+
+  ```diff
+    --gpus '"device=0"' \
+  ```
+
+Your `docker run` should now include:
+
+```bash
+docker run -it \
+  --name "${CONTAINER_NAME}" \
+  --gpus all \
+  --net=host \
+  -e DISPLAY="$DISPLAY" \
+  -e ROS_DOMAIN_ID \
+  -e ROS_IP \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -v "${HOST_FOLDER}":"${CONTAINER_FOLDER}" \
+  -e QT_X11_NO_MITSHM=1 \
+  --privileged \
+  "${IMAGE_NAME}" \
+  bash
+```
+
+**3. Verify GPU Inside Container**
+
+Once the container is running, confirm GPU visibility:
+
+```bash
+nvidia-smi
+```
+
+You should see the same GPU details as on the host. ROS 2 nodes can now leverage the GPU from within Docker.
