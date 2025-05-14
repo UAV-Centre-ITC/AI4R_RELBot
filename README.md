@@ -221,6 +221,9 @@ Happy coding—and good luck with your assignment!
 # Section 2. Important Configuration and Commands
 
 ## GPU Access from Docker Container
+First, ensure your host machine has a supported NVIDIA GPU and the proprietary NVIDIA drivers are properly installed. You can follow PhoenixNAP’s Ubuntu guide for NVIDIA drivers:
+
+[https://phoenixnap.com/kb/install-nvidia-drivers-ubuntu](https://phoenixnap.com/kb/install-nvidia-drivers-ubuntu)
 
 Use the NVIDIA Container Toolkit to expose your host GPU inside the ROS 2 Docker container. Follow these steps:
 
