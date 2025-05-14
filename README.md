@@ -259,9 +259,9 @@ docker info | grep -i "runtimes"
 # Expect to see 'nvidia' listed
 ```
 
-**2. Update `assignment_run.sh`**
+**2. Update `assignment1_setup.sh`**
 
-To enable GPU access, add the `--gpus all` option to your `docker run` invocation in `assignment_run.sh`. For example:
+To enable GPU access, add the `--gpus all` option to your `docker run` invocation in `assignment1_setup.sh`. For example:
 
 ```
 #!/usr/bin/env bash
@@ -283,7 +283,7 @@ docker run -it \
 
 > **Important:** If you have unsaved or non-mounted changes inside your existing container, back them up now (for example, with `docker cp`).
 
-To apply the `--gpus all` flag (or any other changes in `assignment_run.sh`), stop and remove the old container and then relaunch it:
+To apply the `--gpus all` flag (or any other changes in `assignment1_setup.sh`), stop and remove the old container and then relaunch it:
 
 1. **List all containers** (filter by your image name) and note the container name or ID for `gstream-ros2-jazzy-ubuntu24`:
 
@@ -308,7 +308,7 @@ To apply the `--gpus all` flag (or any other changes in `assignment_run.sh`), st
 4. **Relaunch** with your updated script (no rebuild required):
 
    ```
-   ./assignment_run.sh
+   ./assignment1_setup.sh
    ```
 
 > **Note:** Relaunching the container does *not* rebuild the Docker image; it simply starts a new container instance from the already-built image with GPU support enabled.
