@@ -120,7 +120,7 @@ The RELBot’s external webcam is typically available at `/dev/video2`. If you e
    ifconfig  # look under wlan0 or eth0
    ```
 
-3. **Updated Start the GStreamer pipeline** _(replace `<HOST_IP>` with your host IP from the Ubuntu OS)_  
+3. **Start the GStreamer pipeline** _(replace `<HOST_IP>` with your host IP from the Ubuntu OS)_  
    ```
    gst-launch-1.0 -v \
    v4l2src device=/dev/video2 ! \
@@ -135,7 +135,10 @@ The RELBot’s external webcam is typically available at `/dev/video2`. If you e
    - **x264enc**: encode to H.264 with low latency.  
    - **rtph264pay**: packetize for RTP.  
    - **udpsink**: stream to your host.
-   - **NOTE** : Please update the resolution of the command as follows- width=320 , height=240,
+
+### NOTE
+
+**For best performance with the RELBot controller (which assumes a 640 px image width), update your video capture pipeline to use a 320×240 resolution (i.e. width=320, height=240).**
    
  ```
    gst-launch-1.0 -v \
@@ -185,7 +188,7 @@ Set up your ROS 2 workspace to communicate with the RELBot via a unique domain 
    ```
    export ROS_DOMAIN_ID=<RELBot_ID>   # e.g., 8 for RELBot08
    ```
-   Add this line to `~/.bashrc` to make it persistent. This is a very importamt step to configure the communication with the ROS2 running on the RELBot.
+   Add this line to `~/.bashrc` to make it persistent. This is a very important step to configure the communication with the ROS2 running on the RELBot.
 
 ---
 
@@ -264,7 +267,7 @@ ros2 bag play <bagfile>               # play back recorded data and process it o
 
 For seamless development, you can use VS Code’s Remote extensions to work directly inside your Docker container and SSH into the RELBot:
 
-1. **Install Extensions 
+1. **Install Extensions**
    - **Remote Development**
 
 2. **Connect to the Docker Container**  
@@ -294,72 +297,89 @@ Use the NVIDIA Container Toolkit to expose your host GPU inside the ROS 2 Docke
 
 **1. Install & Configure on the Host**
 
-```bash
-# Install NVIDIA driver (if not already installed)
-sudo apt update
-sudo apt install -y nvidia-driver-<version>
-# (Reboot if this is a new driver)
+Follow NVIDIA’s official instructions to configure the repository and install the container toolkit:
 
-# Add NVIDIA’s Docker repository and GPG key:
-distribution=$(. /etc/os-release && echo $ID$VERSION_ID)
-curl -sSL https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
-curl -sSL https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list \
-  | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+```
+# 1) Add NVIDIA’s GPG key and configure the production repository
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+  && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
-# Install the NVIDIA Container Toolkit:
-sudo apt update
-sudo apt install -y nvidia-docker2
+# 2) Update and install the NVIDIA Container Toolkit
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
 
-# Restart Docker to apply the new runtime:
+# 3) Restart Docker to apply the new runtime
 sudo systemctl restart docker
 ```
 
 Verify the `nvidia` runtime is available:
 
-```bash
+```
 docker info | grep -i "runtimes"
 # Expect to see 'nvidia' listed
 ```
 
 **2. Update `assignment_run.sh`**
 
-In your `assignment_run.sh`, add a new flag with either:
+To enable GPU access, add the `--gpus all` option to your `docker run` invocation in `assignment_run.sh`. For example:
 
-* **All GPUs**
+```
+#!/usr/bin/env bash
+# ...
 
-  ```
-   --gpus all \
-  ```
-
-* **Single GPU (e.g. device 0)**
-
-  ```diff
-    --gpus '"device=0"' \
-  ```
-
-Your `docker run` should now include:
-
-```bash
 docker run -it \
   --name "${CONTAINER_NAME}" \
-  --gpus all \
   --net=host \
+  --gpus all\ # <-- Just add this switch
   -e DISPLAY="$DISPLAY" \
-  -e ROS_DOMAIN_ID \
-  -e ROS_IP \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -v "${HOST_FOLDER}":"${CONTAINER_FOLDER}" \
   -e QT_X11_NO_MITSHM=1 \
   --privileged \
-  "${IMAGE_NAME}" \
-  bash
+  "${IMAGE_NAME}" bash
 ```
+
+**3. Restarting the Docker Container**
+
+> **Important:** If you have unsaved or non-mounted changes inside your existing container, back them up now (for example, with `docker cp`).
+
+To apply the `--gpus all` flag (or any other changes in `assignment_run.sh`), stop and remove the old container and then relaunch it:
+
+1. **List all containers** (filter by your image name) and note the container name or ID for `gstream-ros2-jazzy-ubuntu24`:
+
+   ```
+   docker ps -a | grep gstream-ros2-jazzy-ubuntu24
+   # Example:
+   # abcd1234abcd   gstream-ros2-jazzy-ubuntu24   "bash"   2 hours ago   Exited (0) 1 hour ago   relbot_ai4r_assignment1
+   ```
+
+2. **Stop** the existing container:
+
+   ```
+   docker stop relbot_ai4r_assignment1
+   ```
+
+3. **Remove** the stopped container:
+
+   ```
+   docker rm relbot_ai4r_assignment1
+   ```
+
+4. **Relaunch** with your updated script (no rebuild required):
+
+   ```
+   ./assignment_run.sh
+   ```
+
+> **Note:** Relaunching the container does *not* rebuild the Docker image; it simply starts a new container instance from the already-built image with GPU support enabled.
 
 **3. Verify GPU Inside Container**
 
 Once the container is running, confirm GPU visibility:
 
-```bash
+```
 nvidia-smi
 ```
 
