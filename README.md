@@ -225,6 +225,12 @@ First, ensure your host machine has a supported NVIDIA GPU and the proprietary N
 
 [https://phoenixnap.com/kb/install-nvidia-drivers-ubuntu](https://phoenixnap.com/kb/install-nvidia-drivers-ubuntu)
 
+Verify your driver is active by running:
+
+```
+nvidia-smi
+```
+
 Use the NVIDIA Container Toolkit to expose your host GPU inside the ROS 2 Docker container. Follow these steps:
 
 **1. Install & Configure on the Host**
