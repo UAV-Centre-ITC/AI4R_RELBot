@@ -23,7 +23,7 @@ This skeleton package captures a GStreamer video stream and publishes object pos
 
 Before you begin, clone this repository (which includes the `Dockerfile`, the `assignment1_setup.sh` script, and example ROS2 source code) and use the provided script to build and launch your Docker environment:
 
-```bash
+```
 # 1. Clone the repo and enter it
 git clone https://github.com/UAV-Centre-ITC/AI4R_RELBot.git
 cd AI4R_RELBot
@@ -43,7 +43,7 @@ This script will:
 
 The default mapping is controlled by these variables at the top of `assignment1_setup.sh`:
 
-```bash
+```
 HOST_FOLDER="${1:-$(pwd)/ai4r_ws/src}"    # host path to mount (defaults to ./ai4r_ws/src)
 CONTAINER_FOLDER="/ros2_ws/src"           # container mount point
 ```
@@ -198,7 +198,7 @@ The `relbot_video_interface` package is already included in this repository unde
 
 Once your Docker container is running and prerequisites (ROS 2, GStreamer, Step 4.2 etc.) are satisfied, build and launch the test node to verify the video stream:
 
-```bash
+```
 # From inside the container, at the workspace root:
 cd /ai4r_ws
 
