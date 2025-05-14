@@ -8,7 +8,7 @@ This repository contains the source code and setup instructions for **Assignment
 All development should occur within the provided Docker container. Preserve your code snippets and submit them as ROS 2 packages for evaluation.
 
 ---
-# ROS2 Package: `relbot_video_interface`
+# Section 1. ROS2 Package: `relbot_video_interface`
 
 This skeleton package captures a GStreamer video stream and publishes object position messages to the RELBot. It exposes the video capture loop and the `/object_position` topic to control the RELBot.
 
@@ -138,7 +138,7 @@ The RELBot’s external webcam is typically available at `/dev/video2`. If you e
 
 ### NOTE
 
-**For best performance with the RELBot controller (which assumes a 640 px image width), update your video capture pipeline to use a 320×240 resolution (i.e. width=320, height=240).**
+**For best performance with the RELBot controller (which assumes a 320 px image width), update your video capture pipeline to use a 320×240 resolution (i.e. width=320, height=240).**
    
  ```
    gst-launch-1.0 -v \
@@ -218,78 +218,7 @@ You should see the live camera feed streaming and placeholder `/object_position`
 Happy coding—and good luck with your assignment!  
 
 ---
-## ROS2 Cheatsheet
-
-Below are common ROS 2 commands and tools for development and debugging within the Docker container:
-
-```bash
-# Build and source workspace
-colcon build
-source /opt/ros/jazzy/setup.bash
-source /ai4r_ws/install/setup.bash
-
-# List available packages
-ros2 pkg list
-
-# Run a node directly
-ros2 run relbot_video_interface video_interface
-
-# Launch using a launch file
-ros2 launch relbot_video_interface video_interface.launch.py
-
-# Inspect running nodes and topics
-ros2 node list
-ros2 topic list
-ros2 topic echo /object_position
-
-# Manage node parameters
-ros2 param list /video_interface
-ros2 param get /video_interface gst_pipeline
-ros2 param set /video_interface gst_pipeline "<new_pipeline_string>"
-
-# Publish a test message once to move the RELBot (if this is not working check the ROS_DOMAIN_ID, step 4.2)
-ros2 topic pub /object_position geometry_msgs/msg/Point "{x: 100.0, y: 0.0, z: 0.0}" --once
-
-# Debug with RQT tools
-rqt                  # launch RQT plugin GUI
-rqt_graph            # visualize topic-node graph
-
-# View TF frames (if using tf2)
-ros2 run tf2_tools view_frames.py
-# opens frames.pdf showing TF tree
-
-# Record and playback topics
-ros2 bag record /object_position  <other_topics>    # start recording
-ros2 bag play <bagfile>               # play back recorded data and process it offline
-```
----
-## VS Code Development Environment
-
-For seamless development, you can use VS Code’s Remote extensions to work directly inside your Docker container and SSH into the RELBot:
-
-1. **Install Extensions**
-   - **Remote Development**
-
-2. **Connect to the Docker Container**  
-   - Press <kbd>F1</kbd> → **Dev-Containers: Attach to Running Container…**  
-   - Select your `relbot_ai4r_assignment1` container.  
-   - VS Code will reopen with the container filesystem as your workspace.
-
-3. **SSH into the RELBot**  
-   - In the **Remote Explorer** sidebar, under **Remotes(SSH/Tunnels)**, click **Configure button** to add a host entry for `pi@<RELBOT_IP>`.  
-   - Press <kbd>F1</kbd> → **Remote-SSH: Connect to Host…** → select your RELBot entry.  
-   - VS Code opens a new window connected to the robot, letting you inspect logs or edit files over SSH.
-
-4. **Workflow Tips**  
-   - Use split windows: one VS Code window attached to Docker (for code build & debug), another attached to RELBot (for robot-side logs & tweaks).  
-   - Ensure `~/.ssh/config` has your RELBot entry for quick access:  
-     ```text
-     Host  <RELBot_IP>
-         HostName <RELBot_IP>
-         ForwardX11 yes
-         User pi
-     ```
-
+# Section 2. Important Configuration and Commands
 
 ## GPU Access from Docker Container
 
@@ -384,3 +313,76 @@ nvidia-smi
 ```
 
 You should see the same GPU details as on the host. ROS 2 nodes can now leverage the GPU from within Docker.
+
+
+## ROS2 Cheatsheet
+
+Below are common ROS 2 commands and tools for development and debugging within the Docker container:
+
+```bash
+# Build and source workspace
+colcon build
+source /opt/ros/jazzy/setup.bash
+source /ai4r_ws/install/setup.bash
+
+# List available packages
+ros2 pkg list
+
+# Run a node directly
+ros2 run relbot_video_interface video_interface
+
+# Launch using a launch file
+ros2 launch relbot_video_interface video_interface.launch.py
+
+# Inspect running nodes and topics
+ros2 node list
+ros2 topic list
+ros2 topic echo /object_position
+
+# Manage node parameters
+ros2 param list /video_interface
+ros2 param get /video_interface gst_pipeline
+ros2 param set /video_interface gst_pipeline "<new_pipeline_string>"
+
+# Publish a test message once to move the RELBot (if this is not working check the ROS_DOMAIN_ID, step 4.2)
+ros2 topic pub /object_position geometry_msgs/msg/Point "{x: 100.0, y: 0.0, z: 0.0}" --once
+
+# Debug with RQT tools
+rqt                  # launch RQT plugin GUI
+rqt_graph            # visualize topic-node graph
+
+# View TF frames (if using tf2)
+ros2 run tf2_tools view_frames.py
+# opens frames.pdf showing TF tree
+
+# Record and playback topics
+ros2 bag record /object_position  <other_topics>    # start recording
+ros2 bag play <bagfile>               # play back recorded data and process it offline
+```
+---
+## VS Code Development Environment
+
+For seamless development, you can use VS Code’s Remote extensions to work directly inside your Docker container and SSH into the RELBot:
+
+1. **Install Extensions**
+   - **Remote Development**
+
+2. **Connect to the Docker Container**  
+   - Press <kbd>F1</kbd> → **Dev-Containers: Attach to Running Container…**  
+   - Select your `relbot_ai4r_assignment1` container.  
+   - VS Code will reopen with the container filesystem as your workspace.
+
+3. **SSH into the RELBot**  
+   - In the **Remote Explorer** sidebar, under **Remotes(SSH/Tunnels)**, click **Configure button** to add a host entry for `pi@<RELBOT_IP>`.  
+   - Press <kbd>F1</kbd> → **Remote-SSH: Connect to Host…** → select your RELBot entry.  
+   - VS Code opens a new window connected to the robot, letting you inspect logs or edit files over SSH.
+
+4. **Workflow Tips**  
+   - Use split windows: one VS Code window attached to Docker (for code build & debug), another attached to RELBot (for robot-side logs & tweaks).  
+   - Ensure `~/.ssh/config` has your RELBot entry for quick access:  
+     ```text
+     Host  <RELBot_IP>
+         HostName <RELBot_IP>
+         ForwardX11 yes
+         User pi
+     ```
